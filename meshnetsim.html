@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mesh Network Simulation</title>
+	
+</head>
+
+<body>
+This is a simulation of a mesh network.<br/><br>
+
+<canvas id="myCanvas" width="600" height="400" style="border:1px solid #d3d3d3;">
+Rendering...</canvas>
+
+<script>
+
+/************************************************************************************************************
+*Name: function getRandomArbitrary(min, max) 
+*Description:
+*Generates a random number within a range. Based on example at:
+*https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
+************************************************************************************************************/
+function getRandomArbitrary(min, max) 
+{
+    return Math.random() * (max - min) + min;
+}
+
+//init the canvas
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+
+//init variables
+var nodeRadius = 5; //defines how large the circles are
+var numberOfRootNodes = 1; //defines how many network root nodes to draw, assumed to be static
+var numberOfStaticNodes = 15; //defines how many static network member nodes to draw
+var numberOfMobileNodes = 15; //defines how many mobile network member nodes to draw
+
+var nodeCountTotal = 0;
+
+var rootNodeColor = "#800080"; // purple
+var staticNodeColor = "#3370d4"; //blue
+var mobileNodeColor = "#40E0D0"; //turquoise
+
+//define the canvas size
+var canvasXOrigin = 0;
+var canvasXMax = 600;
+var canvasYOrigin = 0;
+var canvasYMax = 400;
+
+//define the boundaries of the canvas for node centers
+var xMin = canvasXOrigin + nodeRadius;
+var xMax = canvasXMax - nodeRadius;
+var yMin = canvasYOrigin + nodeRadius;
+var yMax = canvasYMax - nodeRadius;
+
+var xTemp = 0;
+var yTemp = 0;
+
+var tempXDistance;
+var tempYDistance;
+var tempDistance;
+
+var tempIsRoot = 0;
+var tempIsStatic = 1;
+
+var tempXVector = 0;
+var tempYVector = 0;
+
+var maxConnectionRange = 120; //the distance under which nodes can connect
+
+var maxNodeSpeed = 2; //the maximum velocity of a node
+var maxNodeVectorChange = 1; //the speed at which mobile nodes can change their vectors
+var animationSpeed = 100; //the maximum animation speed in milliseconds
+
+var networkNode = {id:"0", xCoord:"0", yCoord:"0", isRoot:"0", isStatic:1, xVector:0, yVector:0};
+
+//init an array of objects
+var nodeArray = new Array();
+
+//add the root nodes
+//console.log ("Adding the root nodes...");
+tempIsRoot = 1;
+tempIsStatic = 1;
+for (var i = 0; i < numberOfRootNodes; i++)
+{
+	//console.log ("Adding node ID #: " + nodeCountTotal);
+	
+	//generate random coords for a node
+	xTemp = getRandomArbitrary(xMin, xMax);
+	yTemp = getRandomArbitrary(yMin, yMax);
+
+	tempXVector = 0;
+	tempYVector = 0;
+	
+	//create a node object
+	networkNode = {id:nodeCountTotal, xCoord:xTemp, yCoord:yTemp, isRoot:tempIsRoot, isStatic:tempIsStatic, xVector:tempXVector, yVector:tempXVector};
+	
+    nodeArray.push(new Object());
+	nodeArray[nodeCountTotal] = networkNode;
+	
+	//increment the node count
+	nodeCountTotal++;
+}
+
+//add the static nodes
+//console.log ("Adding the static nodes...");
+tempIsRoot = 0;
+tempIsStatic = 1;
+for (var i = 0; i < numberOfStaticNodes; i++)
+{
+	//console.log ("Adding node ID #: " + nodeCountTotal);
+	
+	//generate random coords for a node
+	xTemp = getRandomArbitrary(xMin, xMax);
+	yTemp = getRandomArbitrary(yMin, yMax);
+
+	tempXVector = 0;
+	tempYVector = 0;
+	
+	//create a node object
+	networkNode = {id:nodeCountTotal, xCoord:xTemp, yCoord:yTemp, isRoot:tempIsRoot, isStatic:tempIsStatic, xVector:tempXVector, yVector:tempXVector};
+	
+    nodeArray.push(new Object());
+	nodeArray[nodeCountTotal] = networkNode;
+	
+	//increment the node count
+	nodeCountTotal++;
+}
+
+//add the mobile nodes
+//console.log ("Adding the mobile nodes...");
+tempIsRoot = 0;
+tempIsStatic = 0;
+for (var i = 0; i < numberOfMobileNodes; i++)
+{
+	//console.log ("Adding node ID #: " + nodeCountTotal);
+	
+	//generate random coords for a node
+	xTemp = getRandomArbitrary(xMin, xMax);
+	yTemp = getRandomArbitrary(yMin, yMax);
+
+	//generate random vectors for the mobile nodes
+	tempXVector = getRandomArbitrary((maxNodeVectorChange * -1), maxNodeSpeed);
+	tempYVector = getRandomArbitrary((maxNodeVectorChange * -1), maxNodeSpeed);
+	
+	//create a node object
+	networkNode = {id:nodeCountTotal, xCoord:xTemp, yCoord:yTemp, isRoot:tempIsRoot, isStatic:tempIsStatic, xVector:tempXVector, yVector:tempXVector};
+	
+    nodeArray.push(new Object());
+	nodeArray[nodeCountTotal] = networkNode;
+	
+	//increment the node count
+	nodeCountTotal++;
+}
+
+//create an indefinite loop to animate the network
+var tid = setInterval(animateNetwork, animationSpeed);
+function animateNetwork() 
+{
+	//update the trajectory of mobile nodes
+	for (var i = 0; i < nodeCountTotal; i++)
+	{
+		if(nodeArray[i].isStatic == 0)	//if this is a mobile node
+		{
+			//randomly change the vector by a small amount
+			tempXVector = getRandomArbitrary((maxNodeVectorChange * -1), maxNodeVectorChange);
+			tempYVector = getRandomArbitrary((maxNodeVectorChange * -1), maxNodeVectorChange);
+			
+			//add the change in vector to the actual vector
+			nodeArray[i].xVector = nodeArray[i].xVector + tempXVector;
+			nodeArray[i].yVector = nodeArray[i].yVector + tempYVector;
+			
+			//update the position of mobile nodes
+			nodeArray[i].xCoord = nodeArray[i].xCoord + nodeArray[i].xVector;
+			nodeArray[i].yCoord = nodeArray[i].yCoord + nodeArray[i].yVector;
+
+			
+			//if the node reaches the max speed, then slow it down
+			if(nodeArray[i].xVector > maxNodeSpeed)
+			{
+				nodeArray[i].xVector = maxNodeSpeed;
+			}
+			
+			//if the node reaches the min speed, then slow it down
+			if(nodeArray[i].xVector < (maxNodeSpeed * -1))
+			{
+				nodeArray[i].xVector = maxNodeSpeed * -1;
+			}
+			
+			//if the node reaches the max speed, then slow it down
+			if(nodeArray[i].yVector > maxNodeSpeed)
+			{
+				nodeArray[i].yVector = maxNodeSpeed;
+			}
+			
+			//if the node reaches the min speed, then slow it down
+			if(nodeArray[i].yVector < (maxNodeSpeed * -1))
+			{
+				nodeArray[i].yVector = maxNodeSpeed * -1;
+			}
+			
+			
+			//if the node reaches the X Max edge of the map then reverse it's vector and move it back
+			if(nodeArray[i].xCoord > xMax)
+			{
+				nodeArray[i].xVector = nodeArray[i].xVector * -1;
+				nodeArray[i].xCoord = nodeArray[i].xCoord - nodeRadius;
+			}
+			
+			//if the node reaches the X Min edge of the map then reverse it's vector
+			if(nodeArray[i].xCoord < xMin)
+			{
+				nodeArray[i].xVector = nodeArray[i].xVector * -1;
+				nodeArray[i].xCoord = nodeArray[i].xCoord + nodeRadius;
+			}
+			
+			//if the node reaches the Y Max edge of the map then reverse it's vector
+			if(nodeArray[i].yCoord > yMax)
+			{
+				nodeArray[i].yVector = nodeArray[i].yVector * -1;
+				nodeArray[i].yCoord = nodeArray[i].yCoord - nodeRadius;
+			}
+			
+			//if the node reaches the Y Min edge of the map then reverse it's vector
+			if(nodeArray[i].yCoord < yMin)
+			{
+				nodeArray[i].yVector = nodeArray[i].yVector * -1;
+				nodeArray[i].yCoord = nodeArray[i].yCoord + nodeRadius;
+			}
+			
+		}
+	}
+	
+	//clear the canvas
+	ctx.clearRect(canvasXOrigin,canvasYOrigin,canvasXMax,canvasYMax);
+	
+	//draw connections between the nodes
+	//loop through all of the nodes
+	for (var i = 0; i < nodeCountTotal; i++)
+	{
+		//loop through all of the unvisited nodes
+		for (var j = i; j < nodeCountTotal; j++)
+		{
+			if(i != j)
+			{
+				//console.log ("drawing the connection between " + i + " and " + j);
+				
+				//calculate the distance
+				tempXDistance = nodeArray[i].xCoord - nodeArray[j].xCoord;
+				tempYDistance = nodeArray[i].yCoord - nodeArray[j].yCoord;
+				tempDistance = Math.sqrt(Math.pow(tempXDistance, 2) + Math.pow(tempYDistance, 2));
+				
+				//console.log ("tempXDistance = " + tempXDistance);
+				//console.log ("tempYDistance = " + tempYDistance);
+				//console.log ("tempDistance = " + tempDistance);
+					
+				//only if the distance is <= the maxConnectionRange, then draw the connection
+				if(tempDistance <= maxConnectionRange)
+				{
+					ctx.moveTo(nodeArray[i].xCoord,nodeArray[i].yCoord);
+					ctx.lineTo(nodeArray[j].xCoord,nodeArray[j].yCoord);
+					ctx.stroke();
+				}
+			}
+		}
+	}
+
+	//draw the root nodes on the canvas
+	for (var i = 0; i < nodeCountTotal; i++)
+	{
+		//draw a node
+		/*
+		console.log("Drawing node # " + i);
+		console.log("nodeArray[" + i + "].xCoord == " + nodeArray[i].xCoord);
+		console.log("nodeArray[" + i + "].yCoord == " + nodeArray[i].yCoord);
+		console.log("nodeArray[" + i + "].isRoot == " + nodeArray[i].isRoot);
+		console.log("nodeArray[" + i + "].isStatic == " + nodeArray[i].isStatic);
+		console.log("nodeArray[" + i + "].xVector == " + nodeArray[i].xVector);
+		console.log("nodeArray[" + i + "].yVector == " + nodeArray[i].yVector);
+		*/
+		
+		//if is static node, then set static color; else set mobile color
+		if(nodeArray[i].isStatic == "1")
+		{
+			ctx.fillStyle = staticNodeColor;
+			//console.log("This node is static.");
+		}
+		else
+		{
+			ctx.fillStyle = mobileNodeColor;
+			//console.log("This node is mobile.");
+		}
+		
+		//if is root node, then set root node color
+		if(nodeArray[i].isRoot == "1")
+		{
+			ctx.fillStyle = rootNodeColor;
+			//console.log("This node is a root.");
+		}
+
+		ctx.beginPath();
+		ctx.arc(nodeArray[i].xCoord,nodeArray[i].yCoord,nodeRadius,0,2*Math.PI);	//x, y, radius, starting angle, ending angle
+		//ctx.stroke();
+		ctx.closePath();
+		ctx.fill();
+	}
+}
+</script> 
+
+</body>
+
+</html>
