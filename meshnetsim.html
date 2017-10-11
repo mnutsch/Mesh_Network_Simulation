@@ -7,10 +7,18 @@
 </head>
 
 <body>
-This is a simulation of a mesh network.<br/><br>
+<h2>Mesh Network Simulation</h2>
+<em>by Matt Nutsch</em><br/>
+<br/>
+A mobile ad hoc network (MANET), also known as wireless ad hoc network or ad hoc wireless network, is a continuously self-configuring, infrastructure-less network of mobile devices connected wirelessly. This is a simulation of a mobile ad hoc network.<br/>
+<br/>
 
 <canvas id="myCanvas" width="600" height="400" style="border:1px solid #d3d3d3;">
 Rendering...</canvas>
+<br/>
+<span id="networkStats"></span>
+<br/>
+<div>Copyright &copy; 2017-Present Matt Nutsch. All rights reserved.</div>
 
 <script>
 
@@ -68,11 +76,20 @@ var tempYVector = 0;
 
 var maxConnectionRange = 120; //the distance under which nodes can connect
 
-var maxNodeSpeed = 2; //the maximum velocity of a node
+var maxNodeSpeed = 5; //the maximum velocity of a node
 var maxNodeVectorChange = 1; //the speed at which mobile nodes can change their vectors
 var animationSpeed = 100; //the maximum animation speed in milliseconds
 
 var networkNode = {id:"0", xCoord:"0", yCoord:"0", isRoot:"0", isStatic:1, xVector:0, yVector:0};
+
+//output the network info in text for the user
+var networkStatsText = "<strong>Network Stats</strong><br/>";
+networkStatsText = networkStatsText + "Number of Root Nodes: " + numberOfRootNodes + "<br/>";
+networkStatsText = networkStatsText + "Number of Static Nodes: " + numberOfStaticNodes + "<br/>";
+networkStatsText = networkStatsText + "Number of Mobile Nodes: " + numberOfMobileNodes + "<br/>";
+networkStatsText = networkStatsText + "Max Mobile Node Speed: " + maxNodeSpeed + "<br/>";
+networkStatsText = networkStatsText + "Max Mobile Node Vector Change: " + maxNodeVectorChange + "<br/>";
+document.getElementById("networkStats").innerHTML = networkStatsText;
 
 //init an array of objects
 var nodeArray = new Array();
@@ -297,15 +314,21 @@ function animateNetwork()
 			ctx.fillStyle = rootNodeColor;
 			//console.log("This node is a root.");
 		}
-
+		
 		ctx.beginPath();
 		ctx.arc(nodeArray[i].xCoord,nodeArray[i].yCoord,nodeRadius,0,2*Math.PI);	//x, y, radius, starting angle, ending angle
 		//ctx.stroke();
 		ctx.closePath();
 		ctx.fill();
+		
+		//draw the node ID next to it
+		ctx.font = "10px Arial";
+		ctx.fillText(i,(nodeArray[i].xCoord + 6),(nodeArray[i].yCoord - 6)); 
 	}
 }
 </script> 
+
+
 
 </body>
 
