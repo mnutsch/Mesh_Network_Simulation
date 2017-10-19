@@ -6,6 +6,3 @@ A mobile ad hoc network (MANET), also known as wireless ad hoc network or ad hoc
 
 Follow this link to view the simulation in your browser:<br/>
 https://htmlpreview.github.io/?https://github.com/mnutsch/Mesh_Network_Simulation/blob/master/meshnetsim.html
-
-
-
